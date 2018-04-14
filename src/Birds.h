@@ -1,8 +1,12 @@
+#ifndef __BIRDS_H
+#define __BIRDS_H
+
 #include <math.h>
 #include <vector>
 #include <string>
 #include <stdlib.h>
 #define Nc 7.0
+#define DT
 #define S
 #define WS
 #define WC
@@ -10,6 +14,9 @@
 #define WRV
 #define WRH
 #define SIGMA_SQ
+#define CD
+#define CL
+#define G
 
 
 using namespace std;
@@ -36,12 +43,13 @@ class Bird{
 	vec3<float> pos; // position of the bird
 	vec3<float> dir; // direction of heading
 	vec3<float> net_force; // net force acting on the bird
-	float v0; // magnitude of SS speed
 	float vc; // magnitude of current speed
-	float rsep;
 	float rmet;
 	vector<Bird> *friends;
-
+	
+	static float rsep;
+	static float v0; // magnitude of SS speed
+	static float mass;
 	static float rmax;
 	static vec3<float> roost;
 
@@ -57,27 +65,33 @@ public:
 
 	static void set_rmax(float rm); 
 	static void set_roost(vec3<float> rs);
+	static void set_mass(float m);
+	static void set_v0(float v);
+	static void init(float rm, float rsp, float m, float v, vec3<float> rst);
 
-	void getFriends(vector<Bird> *new_friends);
+	int getNumFriends();
+
+	void setFriends(vector<Bird> *new_friends);
 
 	void calcNetForce();
 
-	void updateSpeed();
-
-	void updatePos();
+	void updateSpeedNPos();
 };
 
 class Env{
 	vector<Bird> flock;
 	float range;
 	float Rmax;
+protected:
+	void _update_friends();
+	void _create_flock(int Num);
 
 public:
-	Env();
-
-	void updateFriends();
+	Env(float rm = 7.5, float rsp = 0.75, float m = 3.0, float v = 1.0, vec3<float> rst = vec3<float>(0.0, 0.0, 0.0), int Num = 20);
 
 	void display();
 
 	void runTimeStep();
 };
+
+#endif
