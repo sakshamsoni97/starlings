@@ -3,7 +3,7 @@
 ## Macros
 CC = g++
 FLAGS = -std=c++11
-LIBS = -lGL -lGLU -lm
+LIBS = -lGL -lGLU -lglut -lm
 BUILDDIR = obj
 SRCDIR = src
 TARGET = bin/murmuration
@@ -12,21 +12,21 @@ TARGET = bin/murmuration
 SRCEXT = cpp
 SOURCES = $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS = $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-INC = -I include
+INC = -I ./include/
 
 $(TARGET): $(OBJECTS)
-  @echo " Linking..."
-  $(CC) $(FLAGS) -o $(TARGET) $^ $(LIBS)
+	@echo " Linking..."
+	$(CC) $(FLAGS) -o $(TARGET) $^ $(LIBS)
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
-  @mkdir -p $(BUILDDIR)
-  $(CC) $(FLAGS) -c $@ $< $(INC)
+	@mkdir -p $(BUILDDIR)
+	$(CC) $(FLAGS) -c -o $@ $< $(INC)
 
 
 .PHONY: clean
 
 clean:
-	rm -rf *.o
-	rm -rf *.out
-	rm -rf Binary
+	rm -rf $(BUILDDIR)/*.o
+	rm -rf bin/*.out
+	rm -rf bin/murmuration
 

@@ -3,7 +3,6 @@
 
 #include <math.h>
 #include <vector>
-#include <string>
 #include <stdlib.h>
 #include <GL/freeglut.h>
 #define Nc 7.0
@@ -12,66 +11,68 @@
 #define WS 1.0
 #define WC 1.0
 #define WA 0.5
-#define WRV 0.2
-#define WRH 0.01
+#define WRV 0.8
+#define WRH 0.04
 #define SIGMA_SQ 1.8769
 #define CDCL 0.3 
 #define G 9.87
+#define SF 2.0
 
 
 using namespace std;
 
-struct vec3<T>{
+template <class T>
+class vec3{
+public:
 	T x;
 	T y;
 	T z;
-	vec3(T _x, T _y, T _z){
-		x = _x;
-		y = _y;
-		z = _z; 
-	}
-	vec3<T> operator+(const vec3<T> &v);
-	vec3<T> operator-(const vec3<T> &v);
-	vec3<T> operator/(const float &A);
-	vec3<T> operator*(const float &A);
-	T operator*(const vec3<T> &v);
-	float vec3::mag();
+	vec3(T _x, T _y, T _z);
+	vec3();
+	vec3 <T> operator+(const vec3 <T> &v);
+	vec3 <T> operator-(const vec3 <T> &v);
+	vec3 <T> operator/(const float &A);
+	vec3 <T> operator*(const float &A);
+	T operator*(const vec3 <T> &v);
+	float mag();
 };
 
 
 class Bird{
-	vec3<float> pos; // position of the bird
-	vec3<float> dir; // direction of heading
-	vec3<float> net_force; // net force acting on the bird
+	vec3 <float> net_force; // net force acting on the bird
 	float vc; // magnitude of current speed
-	float rmet;
-	vector<Bird> *friends;
-	
+	vector<Bird> friends;
 	static float rsep;
 	static float v0; // magnitude of SS speed
 	static float mass;
 	static float rmax;
-	static vec3<float> roost;
-
+	static vec3 <float> roost;
+	
 protected:
-	vec3<float> _separation();
-	vec3<float> _cohesion();
-	vec3<float> _allignment();
-	vec3<float> _attraction_to_roost();
+	vec3 <float> _separation();
+	vec3 <float> _cohesion();
+	vec3 <float> _allignment();
+	vec3 <float> _attraction_to_roost();
+	vec3 <float> _generate_noise();
 
 public:
-	Bird(vec3<float> p);
+	vec3 <float> pos; // position of the bird
+	vec3 <float> dir; // direction of heading
+	float rmet; // the metric range of interaction
+	Bird(vec3 <float> p);
 	Bird();
 
 	static void set_rmax(float rm); 
-	static void set_roost(vec3<float> rs);
+	static void set_roost(vec3 <float> rs);
 	static void set_mass(float m);
 	static void set_v0(float v);
-	static void init(float rm, float rsp, float m, float v, vec3<float> rst);
+	static void Init(float rm, float rsp, float m, float v, vec3 <float> rst);
 
 	int getNumFriends();
 
-	void setFriends(vector<Bird> *new_friends);
+	void updateRmet();
+
+	void setFriends(vector<Bird> new_friends);
 
 	void calcNetForce();
 
@@ -89,7 +90,7 @@ protected:
 	void _create_flock(int Num);
 
 public:
-	Env(float rm = 50, float rsp = 0.3, float m = 0.8, float v = 1.0, vec3<float> rst = vec3<float>(0.0, 0.0, 0.0), int Num = 20);
+	Env(vec3 <float> rst, int Num = 5, float rm = 50, float rsp = 0.3, float m = 0.8, float v = 1.0);
 
 	static void display();
 

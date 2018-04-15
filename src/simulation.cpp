@@ -4,7 +4,7 @@
 #include <string>
 
 
-int refreshMills = 15;        // refresh interval in milliseconds 
+int refreshMills = 1;        // refresh interval in milliseconds 
  
 /* Initialize OpenGL Graphics */
 void initGL() {
@@ -30,22 +30,31 @@ void reshape(GLsizei width, GLsizei height) {  // GLsizei for non-negative integ
    GLfloat aspect = (GLfloat)width / (GLfloat)height;
  
    // Set the viewport to cover the new window
-   glViewport(0, 0, width, height);
+   glViewport(-50, -50, width, height);
  
    // Set the aspect ratio of the clipping volume to match the viewport
    glMatrixMode(GL_PROJECTION);  // To operate on the Projection matrix
    glLoadIdentity();             // Reset
    // Enable perspective projection with fovy, aspect, zNear and zFar
-   gluPerspective(45.0f, aspect, 0.1f, 100.0f);
+   gluPerspective(150.0f, aspect, 0.1f, 400.0f);
+   /*
+   if (width >= height) {
+     // aspect >= 1, set the height from -1 to 1, with larger width
+      glOrtho(-3.0 * aspect, 3.0 * aspect, -3.0, 3.0, 0.1, 100);
+   } else {
+      // aspect < 1, set the width to -1 to 1, with larger height
+     glOrtho(-3.0, 3.0, -3.0 / aspect, 3.0 / aspect, 0.1, 100);
+   }*/
 }
  
 /* Main function: GLUT runs as a console application starting at main() */
 int main(int argc, char** argv) {
-	Env world; 
-
+   vec3 <float> roost(0.0, 0.0, 0.0);
+	Env world(roost); 
+   char* title = "Starlings Simulation";
    glutInit(&argc, argv);            // Initialize GLUT
    glutInitDisplayMode(GLUT_DOUBLE); // Enable double buffered mode
-   glutInitWindowSize(120, 100);   // Set the window's initial width & height
+   glutInitWindowSize(640, 480);   // Set the window's initial width & height
    glutInitWindowPosition(50, 50); // Position the window's initial top-left corner
    glutCreateWindow(title);          // Create window with the given title
    glutDisplayFunc(world.display);       // Register callback handler for window re-paint event

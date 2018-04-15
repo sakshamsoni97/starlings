@@ -1,79 +1,102 @@
 #include "Birds.h"
-
+#include <iostream>
 using namespace std;
 
 template <typename T> int sgn(T val) {
     return (T(0) < val) - (val < T(0));
 }
 
-vec3::vec3(T _x, T _y, T _z){
+template <class T>
+vec3<T>::vec3(T _x, T _y, T _z){
 	x = _x;
 	y = _y;
 	z = _z; 
 }
 
-vec3<T> vec3::operator+(const vec3<T> &v){
-	vec3<T> res;
+template <class T>
+vec3<T>::vec3(){
+	x = 0.0;
+	y = 0.0;
+	z = 0.0; 
+}
+
+template <class T>
+vec3 <T> vec3<T>::operator+(const vec3 <T> &v){
+	vec3 <T> res;
 	res.x = x+v.x;
 	res.y = y+v.y;
 	res.z = z+v.z;
 	return res;
 }
 
-vec3<T> vec3::operator-(const vec3<T> &v){
-	vec3<T> res;
+template <class T>
+vec3 <T> vec3<T>::operator-(const vec3 <T> &v){
+	vec3 <T> res;
 	res.x = x+v.x;
 	res.y = y+v.y;
 	res.z = z+v.z;
 	return res;
 }
 
-vec3<T> vec3::operator/(const float &A){
-	vec3<T> res;
+template <class T>
+vec3 <T> vec3<T>::operator/(const float &A){
+	vec3 <T> res;
 	res.x = x/A;
 	res.y = y/A;
 	res.z = z/A;
 	return res;
 }
 
-vec3<T> vec3::operator*(const float &A){
-	vec3<T> res;
+template <class T>
+vec3 <T> vec3<T>::operator*(const float &A){
+	vec3 <T> res;
 	res.x = x*A;
 	res.y = y*A;
 	res.z = z*A;
 	return res;
 }
 
-T vec3::operator*(const vec3<T> &v){
+template <class T>
+T vec3<T>::operator*(const vec3 <T> &v){
 	T res;
 	res = x*v.x + y*v.y + z*v.z;
 	return res;
 }
 
-float vec3::mag(){
-	return sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
+template <class T>
+float vec3<T>::mag(){
+	return sqrt(x*x + y*y + z*z);
 }
 
 
-inline vec3<float> diff(vec3<float> v1, vec3<float> v2){
-	return vec3<float>(v1.x-v2.x, v1.y-v2.y, v1.z-v2.z);
+inline vec3 <float> diff(vec3 <float> v1, vec3 <float> v2){
+	return vec3 <float>(v1.x-v2.x, v1.y-v2.y, v1.z-v2.z);
 }
 
-Bird::Bird(vec3<float> p){
+float Bird::rsep;
+float Bird::v0; // magnitude of SS speed
+float Bird::mass;
+float Bird::rmax;
+vec3 <float> Bird::roost;
+
+Bird::Bird(vec3 <float> p){
 	pos = p;
 	dir.x = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*2 -1;
 	dir.y = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*2 -1;
-	dir.z = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*2 -1;
+	//dir.z = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*2 -1;
+	dir.z = 0.0;
 	dir = dir/dir.mag();
 }
 
 Bird::Bird(){
-	pos.x = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*8 -4;
-	pos.y = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*8 -4;
-	pos.z = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*8 -4;
+	pos.x = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*6 -3;
+	pos.y = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*6 -3;
+	//pos.z = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*6 -3;
+	pos.z = 0.0;
 	dir.x = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*2 -1;
 	dir.y = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*2 -1;
-	dir.z = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*2 -1;
+	//dir.z = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*2 -1;
+	dir.z = 0.0;
 	dir = dir/dir.mag();
 }
 
@@ -81,7 +104,7 @@ void Bird::set_rmax(float rm){
 	rmax = rm;
 }
 
-void Bird::set_roost(vec3<float> rs){
+void Bird::set_roost(vec3 <float> rs){
 	roost = rs;
 }
 
@@ -89,11 +112,11 @@ void Bird::set_mass(float m){
 	mass = m;
 }
 
-void set_v0(float v){
+void Bird::set_v0(float v){
 	v0 = v;
 }
 
-void init(float rm, float rsp, float m, float v, vec3<float> rst){
+void Bird::Init(float rm, float rsp, float m, float v, vec3 <float> rst){
 	rmax = rm;
 	rsep = rsp;
 	roost = rst;
@@ -102,14 +125,14 @@ void init(float rm, float rsp, float m, float v, vec3<float> rst){
 }
 
 
-vec3<float> Bird::_separation(){
+vec3 <float> Bird::_separation(){
 	if(friends.size()==0)
-		return vec3<float>(0.0, 0.0, 0.0);
+		return vec3 <float>(0.0, 0.0, 0.0);
 
-	vec3<float> fs;
+	vec3 <float> fs;
 	vector<Bird>::iterator it;
 	float g, D, temp;
-	vec3<float> d;
+	vec3 <float> d;
 	for(it = friends.begin(); it!=friends.end(); it++){
 		d = it->pos - pos;
 		D = d.mag();
@@ -126,20 +149,20 @@ vec3<float> Bird::_separation(){
 	return fs;
 }
 
-vec3<float> Bird::_cohesion(){
-	vec3<float> fc;
+vec3 <float> Bird::_cohesion(){
+	vec3 <float> fc;
 	vector<Bird>::iterator it;
 	int ni = friends.size();
 	if(ni==0)
-		return vec3<float>(0.0, 0.0, 0.0);
+		return vec3 <float>(0.0, 0.0, 0.0);
 
 	// TODO: add crowding correction factor
-	vec3<float> d;
+	vec3 <float> d;
 	float ang, D;
 	for(it = friends.begin(); it!=friends.end(); it++){
 		d = it->pos - pos;
 		D = d.mag();
-		ang = (d*dir)/(D*dir.mag())
+		ang = (d*dir)/(D*dir.mag());
 		if(ang<-0.9){
 			ni--;
 			continue;
@@ -153,19 +176,20 @@ vec3<float> Bird::_cohesion(){
 	return fc;
 }
 
-vec3<float> Bird::_allignment(){
-	vec3<float> fa;
+vec3 <float> Bird::_allignment(){
+	vec3 <float> fa;
 	
 	int ni = friends.size();
 	if(ni==0)
-		return vec3<float>(0.0, 0.0, 0.0);
+		return vec3 <float>(0.0, 0.0, 0.0);
 
-	float ang;
-	vec3<float> d;
+	float ang, D;
+	vec3 <float> d;
 	vector<Bird>::iterator it; 
 	for(it = friends.begin(); it!=friends.end(); it++){
 		d = it->dir;
-		ang = (d*dir)/(D*dir.mag())
+		D = d.mag();
+		ang = (d*dir)/(D*dir.mag());
 		if(ang<-0.99){
 			ni--;
 			continue;
@@ -179,24 +203,24 @@ vec3<float> Bird::_allignment(){
 	return fa;	
 }
 
-vec3<float> Bird::_attraction_to_roost(){
-	vec3<float> fr(0.0, 0.0, 0.0);
+vec3 <float> Bird::_attraction_to_roost(){
+	vec3 <float> fr(0.0, 0.0, 0.0);
 	fr.z = -WRV*(pos.z - roost.z);
-	vec3<float> n = pos - roost;
+	vec3 <float> n = pos - roost;
 	n.z = 0;
-	N = n.mag();
+	float N = n.mag();
 	if(N == 0.0)
 		return fr;
 	n = n/N;
-	vec3<float> frh(dir.x, -dir.y, 0);
-	int s = sgn(elat*n);
+	vec3 <float> frh(dir.y, -dir.x, 0);
+	int s = sgn(frh*n);
 	frh = frh*((float) s)*WRH*(0.5+(dir*n)*0.5);
 	fr = fr + frh;
 	return fr;
 }
 
-vec3<float> _generate_noise(){
-	vec3<float> ns;
+vec3 <float> Bird::_generate_noise(){
+	vec3 <float> ns;
 	ns.x = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*2 -1;
 	ns.y = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*2 -1;
 	ns.z = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*2 -1;
@@ -204,28 +228,27 @@ vec3<float> _generate_noise(){
 	return ns;
 }
 
-int getNumFriends(){
-	return friends.size();
+void Bird::updateRmet(){
+	rmet = (1-S)*rmet + S*rmax*(1 - ((float)friends.size()/Nc));
 }
 
-void Bird::setFriends(vector<Bird> *new_friends){
-	delete friends;
+void Bird::setFriends(vector<Bird> new_friends){
 	friends = new_friends;
 }
 
 void Bird::calcNetForce(){
-	vec3<float> Fsocial = _separation() + _cohesion() + _allignment() + _attraction_to_roost() + _generate_noise();
+	vec3 <float> Fsocial = _separation() + _cohesion() + _allignment() + _attraction_to_roost() + _generate_noise();
 	float vsq_ratio = (vc*vc)/(v0*v0);
-	float temp = m*G*(1-vsq_ratio); 
+	float temp = mass*G*(1-vsq_ratio); 
 
-	vec3<float> Fflight((CDCL)*temp, -temp, 0.0);
+	vec3 <float> Fflight((CDCL)*temp, -temp, 0.0);
 
 	net_force = Fsocial+Fflight;
 }
 
 void Bird::updateSpeedNPos(){
-	vec3<float> velocity = dir*vc;
-	velocity = velocity + (net_force/m)*DT;
+	vec3 <float> velocity = dir*vc;
+	velocity = velocity + (net_force/mass)*DT;
 
 	pos = pos + velocity*DT;
 
@@ -233,38 +256,44 @@ void Bird::updateSpeedNPos(){
 	dir = velocity/vc;
 }
 
+vector<Bird> flock;
 
 void Env::_create_flock(int Num){
-	flock.clear();
+	if(!flock.empty())
+		flock.clear();
 	for(int i =0; i<Num; i++){
-		Bird *b = new Bird;
+		Bird b;
+		//cout<<"this---->"<<flock.size()<<endl;
 		flock.push_back(b);
 	}
 }
 
-
-
-Env::Env(float rm, float rsp, float m, float v, vec3<float> rst, int Num){
+Env::Env(vec3 <float> rst, int Num ,float rm, float rsp, float m, float v){
 	_create_flock(Num);
-	flock[0].init(float rm, float rsp, float m, float v, vec3<float> rst);
+	Bird::Init(rm,rsp,m,v,rst);
 }
 
-void display(){
+void Env::display(){
 	runTimeStep();
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
+	glTranslatef(0.0f, 0.0f, -50.0f);
 	vector<Bird>::iterator it;
-	for(it = flock.begin()){
-		glTranslatef(it->pos.x, it->pos.y, it->pos.z);
+	for(it = flock.begin(); it!=flock.end(); it++){
+		glTranslatef(SF*it->pos.x, SF*it->pos.y, SF*it->pos.z);
 		glBegin(GL_TRIANGLES);
 		glColor3f(0.0f, 0.0f, 1.0f);     // Blue
-		vec3<float> p1 = it->dir*0.2;
-		vec3<float> p2(-it->dir.y*0.2, it->dir.x*0.2, it->pos.z);
-		vec3<float> p2(it->dir.y*0.2, -it->dir.x*0.2, it->pos.z);
+		vec3 <float> p1 = it->dir*0.2;
+		vec3 <float> p2(-it->dir.y*0.1, it->dir.x*0.1, it->pos.z);
+		vec3 <float> p3(it->dir.y*0.1, -it->dir.x*0.1, it->pos.z);
+		glVertex3f(SF*p1.x, SF*p1.y, SF*p1.z);
+		glVertex3f(SF*p2.x, SF*p2.y, SF*p2.z);
+		glVertex3f(SF*p3.x, SF*p3.y, SF*p3.z);
 		glEnd();
+		glTranslatef(-SF*it->pos.x, -SF*it->pos.y, -SF*it->pos.z);
 	}
 	
    	glutSwapBuffers();
@@ -275,15 +304,15 @@ void Env::_update_friends(){
 	vector<Bird>::iterator i2;
 
 	for(i1 = flock.begin(); i1!=flock.end(); i1++){
-		i1->rmet = (1-S)*i1->rmet + S*i1->rmax*(1 - ((float)i1->getNumFriends()/Nc));
-		vector<Bird> *frs = new vector<Bird>;
-		for(i2 = i1.next(); i2!= flock.end(); i2++){
-			vec3<float> pvec = i1->pos-i2->pos; 
+		i1->updateRmet();
+		vector<Bird> frs;
+		for(i2 = next(i1); i2!= flock.end(); i2++){
+			vec3 <float> pvec = i1->pos-i2->pos; 
 			float dist = pvec.mag();
-			if(dist<rmet)
+			if(dist<i1->rmet)
 				frs.push_back(*i2);
 		}
-		i1->setFriends(frs)
+		i1->setFriends(frs);
 	}
 }
 
