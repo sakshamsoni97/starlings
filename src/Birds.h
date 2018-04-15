@@ -5,18 +5,18 @@
 #include <vector>
 #include <string>
 #include <stdlib.h>
+#include <GL/freeglut.h>
 #define Nc 7.0
-#define DT
-#define S
-#define WS
-#define WC
-#define WA
-#define WRV
-#define WRH
-#define SIGMA_SQ
-#define CD
-#define CL
-#define G
+#define DT 0.005
+#define S 0.005
+#define WS 1.0
+#define WC 1.0
+#define WA 0.5
+#define WRV 0.2
+#define WRH 0.01
+#define SIGMA_SQ 1.8769
+#define CDCL 0.3 
+#define G 9.87
 
 
 using namespace std;
@@ -78,20 +78,22 @@ public:
 	void updateSpeedNPos();
 };
 
+extern vector<Bird> flock;
+
 class Env{
-	vector<Bird> flock;
+	/* class to providing controls over the environment */
 	float range;
 	float Rmax;
 protected:
-	void _update_friends();
+	static void _update_friends();
 	void _create_flock(int Num);
 
 public:
-	Env(float rm = 7.5, float rsp = 0.75, float m = 3.0, float v = 1.0, vec3<float> rst = vec3<float>(0.0, 0.0, 0.0), int Num = 20);
+	Env(float rm = 50, float rsp = 0.3, float m = 0.8, float v = 1.0, vec3<float> rst = vec3<float>(0.0, 0.0, 0.0), int Num = 20);
 
-	void display();
+	static void display();
 
-	void runTimeStep();
+	static void runTimeStep();
 };
 
 #endif

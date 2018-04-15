@@ -166,7 +166,7 @@ vec3<float> Bird::_allignment(){
 	for(it = friends.begin(); it!=friends.end(); it++){
 		d = it->dir;
 		ang = (d*dir)/(D*dir.mag())
-		if(ang<-0.9){
+		if(ang<-0.99){
 			ni--;
 			continue;
 		}
@@ -218,7 +218,7 @@ void Bird::calcNetForce(){
 	float vsq_ratio = (vc*vc)/(v0*v0);
 	float temp = m*G*(1-vsq_ratio); 
 
-	vec3<float> Fflight((CD/CL)*temp, -temp, 0.0);
+	vec3<float> Fflight((CDCL)*temp, -temp, 0.0);
 
 	net_force = Fsocial+Fflight;
 }
@@ -235,6 +235,7 @@ void Bird::updateSpeedNPos(){
 
 
 void Env::_create_flock(int Num){
+	flock.clear();
 	for(int i =0; i<Num; i++){
 		Bird *b = new Bird;
 		flock.push_back(b);
@@ -246,6 +247,27 @@ void Env::_create_flock(int Num){
 Env::Env(float rm, float rsp, float m, float v, vec3<float> rst, int Num){
 	_create_flock(Num);
 	flock[0].init(float rm, float rsp, float m, float v, vec3<float> rst);
+}
+
+void display(){
+	runTimeStep();
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	vector<Bird>::iterator it;
+	for(it = flock.begin()){
+		glTranslatef(it->pos.x, it->pos.y, it->pos.z);
+		glBegin(GL_TRIANGLES);
+		glColor3f(0.0f, 0.0f, 1.0f);     // Blue
+		vec3<float> p1 = it->dir*0.2;
+		vec3<float> p2(-it->dir.y*0.2, it->dir.x*0.2, it->pos.z);
+		vec3<float> p2(it->dir.y*0.2, -it->dir.x*0.2, it->pos.z);
+		glEnd();
+	}
+	
+   	glutSwapBuffers();
 }
 
 void Env::_update_friends(){
