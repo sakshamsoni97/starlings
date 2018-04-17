@@ -7,12 +7,13 @@
 #include <GL/freeglut.h>
 #define Nc 7.0
 #define DT 0.005
+#define DTmsec 5
 #define S 0.005
 #define WS 1.0
-#define WC 1.0
-#define WA 0.5
-#define WRV 0.8
-#define WRH 0.04
+#define WC 5.0
+#define WA 1.0 	
+#define WRV 8
+#define WRH 0.4
 #define SIGMA_SQ 1.8769
 #define CDCL 0.3 
 #define G 9.87
@@ -90,7 +91,7 @@ protected:
 	void _create_flock(int Num);
 
 public:
-	Env(vec3 <float> rst, int Num = 5, float rm = 50, float rsp = 0.3, float m = 0.8, float v = 1.0);
+	Env(vec3 <float> rst, int Num = 5, float rm = 50, float rsp = 0.7, float m = 0.8, float v = 1.0);
 
 	static void display();
 

@@ -20,7 +20,7 @@ $(TARGET): $(OBJECTS)
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@mkdir -p $(BUILDDIR)
-	$(CC) $(FLAGS) -c -o $@ $< $(INC)
+	$(CC) $(FLAGS) -c -o $@ $< $(INC) -g
 
 
 .PHONY: clean

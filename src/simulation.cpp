@@ -4,11 +4,11 @@
 #include <string>
 
 
-int refreshMills = 1;        // refresh interval in milliseconds 
+int refreshMills = DTmsec;        // refresh interval in milliseconds 
  
 /* Initialize OpenGL Graphics */
 void initGL() {
-   glClearColor(1.0f, 1.0f, 1.0f, 1.0f); 
+   glClearColor(1.0f, 1.0f, 1.0f, 0.0f); 
    glClearDepth(1.0f);                   // Set background depth to farthest
    glEnable(GL_DEPTH_TEST);   // Enable depth testing for z-culling
    glDepthFunc(GL_LEQUAL);    // Set the type of depth-test
@@ -30,23 +30,24 @@ void reshape(GLsizei width, GLsizei height) {  // GLsizei for non-negative integ
    GLfloat aspect = (GLfloat)width / (GLfloat)height;
  
    // Set the viewport to cover the new window
-   glViewport(-50, -50, width, height);
+   glViewport(0, 0, width, height);
  
    // Set the aspect ratio of the clipping volume to match the viewport
    glMatrixMode(GL_PROJECTION);  // To operate on the Projection matrix
    glLoadIdentity();             // Reset
    // Enable perspective projection with fovy, aspect, zNear and zFar
-   gluPerspective(150.0f, aspect, 0.1f, 400.0f);
-   /*
+   //gluPerspective(120.0f, aspect, 0.1f, 100.0f);
+   
    if (width >= height) {
      // aspect >= 1, set the height from -1 to 1, with larger width
-      glOrtho(-3.0 * aspect, 3.0 * aspect, -3.0, 3.0, 0.1, 100);
+      glOrtho(-20.0 * aspect, 20.0 * aspect, -20.0, 20.0, 0.1, 100);
    } else {
       // aspect < 1, set the width to -1 to 1, with larger height
-     glOrtho(-3.0, 3.0, -3.0 / aspect, 3.0 / aspect, 0.1, 100);
-   }*/
+     glOrtho(-20.0, 20.0, -20.0 / aspect, 20.0 / aspect, 0.1, 100);
+   }
 }
  
+
 /* Main function: GLUT runs as a console application starting at main() */
 int main(int argc, char** argv) {
    vec3 <float> roost(0.0, 0.0, 0.0);
