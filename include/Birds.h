@@ -7,18 +7,16 @@
 #include <GL/freeglut.h>
 #define Nc 7.0
 #define DT 0.005
-#define DTmsec 5
+#define DTmsec 1
 #define S 0.005
-#define WS 1.0
+#define WS 3.0
 #define WC 5.0
-#define WA 1.0 	
+#define WA 5.0 	
 #define WRV 8
 #define WRH 0.4
-#define SIGMA_SQ 1.8769
+#define SIGMA_SQ 1.21
 #define CDCL 0.3 
 #define G 9.87
-#define SF 2.0
-
 
 using namespace std;
 
@@ -55,8 +53,10 @@ protected:
 	vec3 <float> _allignment();
 	vec3 <float> _attraction_to_roost();
 	vec3 <float> _generate_noise();
+	void _update_friends();
 
 public:
+	int serial;
 	vec3 <float> pos; // position of the bird
 	vec3 <float> dir; // direction of heading
 	float rmet; // the metric range of interaction
@@ -68,12 +68,11 @@ public:
 	static void set_mass(float m);
 	static void set_v0(float v);
 	static void Init(float rm, float rsp, float m, float v, vec3 <float> rst);
+	static int count;
 
 	int getNumFriends();
 
 	void updateRmet();
-
-	void setFriends(vector<Bird> new_friends);
 
 	void calcNetForce();
 
@@ -81,17 +80,18 @@ public:
 };
 
 extern vector<Bird> flock;
+extern float simulation_time;
 
 class Env{
 	/* class to providing controls over the environment */
 	float range;
 	float Rmax;
 protected:
-	static void _update_friends();
+	//static void _update_friends();
 	void _create_flock(int Num);
 
 public:
-	Env(vec3 <float> rst, int Num = 5, float rm = 50, float rsp = 0.7, float m = 0.8, float v = 1.0);
+	Env(vec3 <float> rst, int Num = 5, float rm = 30, float rsp = 0.7, float m = 0.8, float v = 5.0);
 
 	static void display();
 

@@ -72,6 +72,7 @@ float Bird::rsep;
 float Bird::v0; // magnitude of SS speed
 float Bird::mass;
 float Bird::rmax;
+int Bird::count;
 vec3 <float> Bird::roost;
 
 Bird::Bird(vec3 <float> p){
@@ -81,6 +82,8 @@ Bird::Bird(vec3 <float> p){
 	dir.z = 0.0;
 	dir = dir/dir.mag();
 	rmet = rmax;
+	serial = count;
+	count++;
 }
 
 Bird::Bird(){
@@ -92,6 +95,8 @@ Bird::Bird(){
 	dir.z = 0.0;
 	dir = dir/dir.mag();
 	rmet = rmax;
+	serial = count;
+	count++;
 }
 
 void Bird::set_rmax(float rm){
@@ -116,6 +121,7 @@ void Bird::Init(float rm, float rsp, float m, float v, vec3 <float> rst){
 	roost = rst;
 	mass = m;
 	v0 = v;
+	count = 0;
 }
 
 
@@ -212,8 +218,10 @@ vec3 <float> Bird::_attraction_to_roost(){
 		return fr;
 	n = n/N;
 	vec3 <float> frh(dir.y, -dir.x, 0);
+	vec3 <float> temp = pos;
+	temp.z = 0.0;
 	int s = -sgn(frh*n);
-	frh = frh*((float) s)*WRH*(0.5+(dir*n)*0.5);
+	frh = frh*((float) s)*WRH*(0.5+(dir*n)*0.5)*temp.mag();
 	fr = fr + frh;
 	return fr;
 }
@@ -233,18 +241,34 @@ void Bird::updateRmet(){
 	rmet = (1-S)*rmet + S*rmax*(1 - ((float)friends.size()/Nc));
 }
 
-void Bird::setFriends(vector<Bird> new_friends){
-	friends = new_friends;
+
+void Bird::_update_friends(){
+	vector<Bird>::iterator i1;
+	updateRmet();
+	if(!friends.empty())
+		friends.clear();
+	for(i1 = flock.begin(); i1!=flock.end(); i1++){
+		vector<Bird> frs;
+		if(serial==i1->serial)
+			continue;
+		vec3 <float> pvec = pos-i1->pos; 
+		float dist = pvec.mag();
+		if(dist<rmet)
+			friends.push_back(*i1);
+	}
 }
 
+
 void Bird::calcNetForce(){
-	/*vec3 <float> Fsep = _separation();
+	_update_friends();
+	vec3 <float> Fsep = _separation();
 	vec3 <float> Fcoh = _cohesion();
 	vec3 <float> Frst = _attraction_to_roost();
-	vec3 <float> Fno = _generate_noise();*/
+	vec3 <float> Fno = _generate_noise();
+	vec3 <float> Fal = _allignment();
 	vec3 <float> Ft = dir*100*mass*(v0 - vc);
-	//vec3 <float> Fsocial = Fsep + Fcoh + Frst + Fno ;
-	vec3 <float> Fsocial = _separation() + _cohesion() + _attraction_to_roost() + _generate_noise();
+	vec3 <float> Fsocial = Fsep + Fcoh + Frst + Fno + Fal;
+	//vec3 <float> Fsocial = _separation() + _cohesion() + _attraction_to_roost() + _generate_noise() + _allignment();
 	float vsq_ratio = (vc*vc)/(v0*v0);
 	float temp = mass*G*(1-vsq_ratio); 
 
@@ -252,8 +276,7 @@ void Bird::calcNetForce(){
 
 	net_force = Fsocial+Fflight+Ft;
 	if(!isfinite(net_force.mag())){
-		cout<<"noooooooooooo"<<endl;
-		float x = vsq_ratio;
+		cout<<simulation_time<<" : net force value exploded "<<endl;
 	}
 }
 
@@ -265,19 +288,20 @@ void Bird::updateSpeedNPos(){
 
 	vc = velocity.mag();
 	if(!isfinite(pos.mag()))
-		cout<<net_force.mag()<<endl;
+		cout<<simulation_time<<" : "<<net_force.mag()<<endl;
 	if(vc!=0.0)
 		dir = velocity/vc;
+	simulation_time += DT;
 }
 
 vector<Bird> flock;
+float simulation_time;
 
 void Env::_create_flock(int Num){
 	if(!flock.empty())
 		flock.clear();
 	for(int i =0; i<Num; i++){
 		Bird b;
-		//cout<<"this---->"<<flock.size()<<endl;
 		flock.push_back(b);
 	}
 }
@@ -285,67 +309,65 @@ void Env::_create_flock(int Num){
 Env::Env(vec3 <float> rst, int Num ,float rm, float rsp, float m, float v){
 	Bird::Init(rm,rsp,m,v,rst);
 	_create_flock(Num);
+	simulation_time = 0;
 }
+
+void DrawCircle(float cx, float cy, float cz, float r, int num_segments)
+{
+    glBegin(GL_LINE_LOOP);
+    for(int ii = 0; ii < num_segments; ii++)
+    {
+        float theta = 2.0f * 3.1415926f * float(ii) / float(num_segments);//get the current angle
+
+        float x = r * cosf(theta);//calculate the x component
+        float y = r * sinf(theta);//calculate the y component
+
+        glVertex3f(x + cx, y + cy, cz);//output vertex
+
+    }
+    glEnd();
+}
+
 
 void Env::display(){
 	runTimeStep();
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear color and depth buffers
-   glMatrixMode(GL_MODELVIEW);     // To operate on model-view matrix
+	glMatrixMode(GL_MODELVIEW);     // To operate on model-view matrix
  
-   // Render a color-cube consisting of 6 quads with different colors
-   glLoadIdentity();                 // Reset the model-view matrix
-   glTranslatef(1.5f, 0.0f, -7.0f);  // Move right and into the screen
+	glLoadIdentity();                 // Reset the model-view matrix
+	glTranslatef(0.0f, 0.0f, -10.0f);  
  
-   glBegin(GL_LINE_LOOP);                // Begin drawing the color cube with 6 quads
+  /* glBegin(GL_LINE_LOOP);     
    	  glLineWidth(6);
-      glColor3f(1.0f, 0.0f, 0.0f);     // Green
+      glColor3f(1.0f, 0.0f, 0.0f);  
       glVertex3f( 10.0f, 10.0f, 0.0f);
       glVertex3f( 10.0f, -10.0f, 0.0f);
       glVertex3f(-10.0f, -10.0f, 0.0f);
       glVertex3f(-10.0f, 10.0f, 0.0f);
+    glEnd();*/  
 
-    glEnd();  // End of drawing color-cube
- 
-
-	glTranslatef(0.0f, 0.0f, 50.0f);
 	vector<Bird>::iterator it;
 	for(it = flock.begin(); it!=flock.end(); it++){
-		glTranslatef(SF*it->pos.x, SF*it->pos.y, SF*it->pos.z);
+		glTranslatef((GLfloat)it->pos.x, (GLfloat)it->pos.y, (GLfloat)it->pos.z);
 		glBegin(GL_TRIANGLES);
-		glColor3f(0.0f, 0.0f, 1.0f);     
+		glColor3f(1.0f, 0.0f, 0.0f);     
 		vec3 <float> p1 = it->dir;
 		vec3 <float> p2(-it->dir.y, it->dir.x, it->pos.z);
 		vec3 <float> p3(it->dir.y, -it->dir.x, it->pos.z);
-		glVertex3f(SF*p1.x, SF*p1.y, SF*p1.z);
-		glVertex3f(SF*p2.x, SF*p2.y, SF*p2.z);
-		glVertex3f(SF*p3.x, SF*p3.y, SF*p3.z);
+		glVertex3f((GLfloat)p1.x, (GLfloat)p1.y, (GLfloat)p1.z);
+		glVertex3f((GLfloat)p2.x, (GLfloat)p2.y, (GLfloat)p2.z);
+		glVertex3f((GLfloat)p3.x, (GLfloat)p3.y, (GLfloat)p3.z);
+		//DrawCircle(0.0f, 0.0f, 0.0f, it->rmet, 50);
+
 		glEnd();
-		glTranslatef(-SF*it->pos.x, -SF*it->pos.y, -SF*it->pos.z);
+		glTranslatef((GLfloat)-it->pos.x, (GLfloat)-it->pos.y, (GLfloat)-it->pos.z);
 	}
    	glutSwapBuffers();
 }
 
-void Env::_update_friends(){
-	vector<Bird>::iterator i1;
-	vector<Bird>::iterator i2;
-	int i = 0;
-	for(i1 = flock.begin(); i1!=flock.end(); i1++){
-		i1->updateRmet();
-		vector<Bird> frs;
-		for(i2 = next(i1,1); i2!= flock.end(); i2++){
-			vec3 <float> pvec = i1->pos-i2->pos; 
-			float dist = pvec.mag();
-			if(dist<i1->rmet)
-				frs.push_back(*i2);
-		}
-		//cout<<"check-->"<<frs.size()<<endl;
-		i1->setFriends(frs);
-	}
-}
-
 void Env::runTimeStep(){
-	_update_friends();
+	//_update_friends();
 	vector<Bird>::iterator it;
 	for(it=flock.begin(); it!=flock.end(); it++){
 		it->calcNetForce();

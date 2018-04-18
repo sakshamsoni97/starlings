@@ -36,15 +36,15 @@ void reshape(GLsizei width, GLsizei height) {  // GLsizei for non-negative integ
    glMatrixMode(GL_PROJECTION);  // To operate on the Projection matrix
    glLoadIdentity();             // Reset
    // Enable perspective projection with fovy, aspect, zNear and zFar
-   //gluPerspective(120.0f, aspect, 0.1f, 100.0f);
+   gluPerspective(120.0f, aspect, 0.1f, 100.0f);
    
-   if (width >= height) {
+   /*if (width >= height) {
      // aspect >= 1, set the height from -1 to 1, with larger width
-      glOrtho(-20.0 * aspect, 20.0 * aspect, -20.0, 20.0, 0.1, 100);
+      glOrtho(-30.0 * aspect, 30.0 * aspect, -30.0, 30.0, 0.1, 100);
    } else {
       // aspect < 1, set the width to -1 to 1, with larger height
-     glOrtho(-20.0, 20.0, -20.0 / aspect, 20.0 / aspect, 0.1, 100);
-   }
+     glOrtho(-30.0, 30.0, -30.0 / aspect, 30.0 / aspect, 0.1, 100);
+   }*/
 }
  
 
