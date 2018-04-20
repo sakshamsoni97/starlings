@@ -2,7 +2,7 @@
 #include <GL/freeglut.h>
 #include <vector>
 #include <string>
-
+#include <iostream>
 
 int refreshMills = DTmsec;        // refresh interval in milliseconds 
  
@@ -36,7 +36,7 @@ void reshape(GLsizei width, GLsizei height) {  // GLsizei for non-negative integ
    glMatrixMode(GL_PROJECTION);  // To operate on the Projection matrix
    glLoadIdentity();             // Reset
    // Enable perspective projection with fovy, aspect, zNear and zFar
-   gluPerspective(120.0f, aspect, 0.1f, 100.0f);
+   gluPerspective(150.0f, aspect, 0.1f, 300.0f);
    
    /*if (width >= height) {
      // aspect >= 1, set the height from -1 to 1, with larger width
@@ -59,6 +59,7 @@ int main(int argc, char** argv) {
    glutInitWindowPosition(50, 50); // Position the window's initial top-left corner
    glutCreateWindow(title);          // Create window with the given title
    glutDisplayFunc(world.display);       // Register callback handler for window re-paint event
+   cout<<"simulation running..."<<endl;
    glutReshapeFunc(reshape);       // Register callback handler for window re-size event
    initGL();                       // Our own OpenGL initialization
    glutTimerFunc(0, timer, 0);     // First timer call immediately [NEW]

@@ -6,15 +6,16 @@
 #include <stdlib.h>
 #include <GL/freeglut.h>
 #define Nc 7.0
-#define DT 0.005
-#define DTmsec 1
+#define DT 0.01
+#define DTmsec 10
 #define S 0.005
-#define WS 3.0
-#define WC 5.0
+#define WS 7.0
+#define WC 10.0
 #define WA 5.0 	
-#define WRV 8
-#define WRH 0.4
-#define SIGMA_SQ 1.21
+#define WRV 4.0
+#define WRVD 10.0
+#define WRH 0.2
+#define SIGMA_SQ 1.0
 #define CDCL 0.3 
 #define G 9.87
 
@@ -40,7 +41,7 @@ public:
 class Bird{
 	vec3 <float> net_force; // net force acting on the bird
 	float vc; // magnitude of current speed
-	vector<Bird> friends;
+	vector<Bird *> friends;
 	static float rsep;
 	static float v0; // magnitude of SS speed
 	static float mass;
@@ -51,6 +52,7 @@ protected:
 	vec3 <float> _separation();
 	vec3 <float> _cohesion();
 	vec3 <float> _allignment();
+	vec3 <float> _interactions();
 	vec3 <float> _attraction_to_roost();
 	vec3 <float> _generate_noise();
 	void _update_friends();
@@ -91,7 +93,7 @@ protected:
 	void _create_flock(int Num);
 
 public:
-	Env(vec3 <float> rst, int Num = 5, float rm = 30, float rsp = 0.7, float m = 0.8, float v = 5.0);
+	Env(vec3 <float> rst, int Num = 5, float rm = 45, float rsp = 0.7, float m = 0.8, float v = 5.0);
 
 	static void display();
 

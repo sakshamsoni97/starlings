@@ -1,5 +1,6 @@
 #include "Birds.h"
 #include <iostream>
+#include <ctime>
 using namespace std;
 
 template <typename T> int sgn(T val) {
@@ -130,11 +131,11 @@ vec3 <float> Bird::_separation(){
 		return vec3 <float>(0.0, 0.0, 0.0);
 
 	vec3 <float> fs;
-	vector<Bird>::iterator it;
+	vector<Bird *>::iterator it;
 	float g, D, temp;
 	vec3 <float> d;
 	for(it = friends.begin(); it!=friends.end(); it++){
-		d = it->pos - pos;
+		d = (*it)->pos - pos;
 		D = d.mag();
 		if(D<=rsep){
 			fs = fs + d/D;
@@ -150,7 +151,7 @@ vec3 <float> Bird::_separation(){
 
 vec3 <float> Bird::_cohesion(){
 	vec3 <float> fc;
-	vector<Bird>::iterator it;
+	vector<Bird *>::iterator it;
 	int ni = friends.size();
 	if(ni==0)
 		return vec3 <float>(0.0, 0.0, 0.0);
@@ -159,7 +160,7 @@ vec3 <float> Bird::_cohesion(){
 	vec3 <float> d;
 	float ang, D;
 	for(it = friends.begin(); it!=friends.end(); it++){
-		d = it->pos - pos;
+		d = (*it)->pos - pos;
 		D = d.mag();
 		if(D==0.0)
 			continue;
@@ -186,13 +187,14 @@ vec3 <float> Bird::_allignment(){
 	if(ni==0)
 		return vec3 <float>(0.0, 0.0, 0.0);
 
-	float ang, D;
-	vec3 <float> d;
-	vector<Bird>::iterator it; 
+	float ang, Di;
+	vec3 <float> d, di;
+	vector<Bird *>::iterator it; 
 	for(it = friends.begin(); it!=friends.end(); it++){
-		d = it->dir;
-		D = d.mag();
-		ang = (d*dir)/(D*dir.mag());
+		d = (*it)->dir;
+		di = (*it)->pos - pos;
+		Di = di.mag();
+		ang = (di*dir)/(Di*dir.mag());
 		if(ang<-0.99){
 			ni--;
 			continue;
@@ -208,9 +210,61 @@ vec3 <float> Bird::_allignment(){
 	return fa;	
 }
 
+vec3 <float> Bird::_interactions(){
+	vec3 <float> fa;
+	vec3 <float> fs;
+	vec3 <float> fc;
+	
+	int ni = friends.size();
+	if(ni==0)
+		return vec3 <float>(0.0, 0.0, 0.0);
+
+	float ang, Di, g, temp;
+	vec3 <float> d, di;
+	vector<Bird *>::iterator it; 
+	for(it = friends.begin(); it!=friends.end(); it++){
+		d = (*it)->dir;
+		di = (*it)->pos - pos;
+		Di = di.mag();
+
+		if(Di!=0.0){
+			fs = fs + di;
+			continue;
+		}
+		if(Di<=rsep){
+			fs = fs + di/Di;
+		}else{
+			temp = Di-rsep;
+			g = exp(-(temp*temp)/SIGMA_SQ);
+			fs = fs + (di/Di)*g;
+		}
+		ang = (di*dir)/(Di*dir.mag());
+		if(ang<-0.99){
+			ni--;
+			continue;
+		}
+		fa = fa + d;
+		if(Di>rsep){
+			fc = fc + di/Di;
+		}
+	}
+	fa = fa - dir;
+	float FA = fa.mag();
+	if(FA!=0.0)
+		fa = fa/fa.mag();
+	fa = fa*WA;
+	if(ni==0)
+		fc = vec3 <float>(0.0, 0.0, 0.0);
+	fc = fc*(WC/((float)ni));
+	fs = fs*(-WS/((float)friends.size()));
+
+	return fa+fs+fc;	
+}
+
+
 vec3 <float> Bird::_attraction_to_roost(){
 	vec3 <float> fr(0.0, 0.0, 0.0);
-	fr.z = -WRV*(pos.z - roost.z);
+	fr.z = -WRV*(pos.z - roost.z) + WRVD*vc*dir.z; // TODO: damp this SHM
 	vec3 <float> n = pos - roost;
 	n.z = 0;
 	float N = n.mag();
@@ -243,32 +297,39 @@ void Bird::updateRmet(){
 
 
 void Bird::_update_friends(){
+	//clock_t begin, end;
 	vector<Bird>::iterator i1;
 	updateRmet();
+	
 	if(!friends.empty())
 		friends.clear();
+
+	//begin = clock();
 	for(i1 = flock.begin(); i1!=flock.end(); i1++){
 		vector<Bird> frs;
 		if(serial==i1->serial)
 			continue;
 		vec3 <float> pvec = pos-i1->pos; 
 		float dist = pvec.mag();
+		Bird *brd = &(*i1); 
 		if(dist<rmet)
-			friends.push_back(*i1);
+			friends.push_back(brd);
 	}
+	//Scout<<friends.size()<<endl;
+	/*end = clock();
+	double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+	cout<<">>step computation time : "<<elapsed_secs<<endl;*/
 }
 
 
 void Bird::calcNetForce(){
 	_update_friends();
-	vec3 <float> Fsep = _separation();
-	vec3 <float> Fcoh = _cohesion();
-	vec3 <float> Frst = _attraction_to_roost();
+	/*vec3 <float> Frst = _attraction_to_roost();
 	vec3 <float> Fno = _generate_noise();
-	vec3 <float> Fal = _allignment();
+	vec3 <float> Fin = _interactions();
+	vec3 <float> Fsocial = Fin  + Fno;*/
 	vec3 <float> Ft = dir*100*mass*(v0 - vc);
-	vec3 <float> Fsocial = Fsep + Fcoh + Frst + Fno + Fal;
-	//vec3 <float> Fsocial = _separation() + _cohesion() + _attraction_to_roost() + _generate_noise() + _allignment();
+	vec3 <float> Fsocial = _separation() + _cohesion() + _attraction_to_roost() + _generate_noise() + _allignment();
 	float vsq_ratio = (vc*vc)/(v0*v0);
 	float temp = mass*G*(1-vsq_ratio); 
 
@@ -291,7 +352,6 @@ void Bird::updateSpeedNPos(){
 		cout<<simulation_time<<" : "<<net_force.mag()<<endl;
 	if(vc!=0.0)
 		dir = velocity/vc;
-	simulation_time += DT;
 }
 
 vector<Bird> flock;
@@ -334,18 +394,8 @@ void Env::display(){
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear color and depth buffers
 	glMatrixMode(GL_MODELVIEW);     // To operate on model-view matrix
- 
 	glLoadIdentity();                 // Reset the model-view matrix
 	glTranslatef(0.0f, 0.0f, -10.0f);  
- 
-  /* glBegin(GL_LINE_LOOP);     
-   	  glLineWidth(6);
-      glColor3f(1.0f, 0.0f, 0.0f);  
-      glVertex3f( 10.0f, 10.0f, 0.0f);
-      glVertex3f( 10.0f, -10.0f, 0.0f);
-      glVertex3f(-10.0f, -10.0f, 0.0f);
-      glVertex3f(-10.0f, 10.0f, 0.0f);
-    glEnd();*/  
 
 	vector<Bird>::iterator it;
 	for(it = flock.begin(); it!=flock.end(); it++){
@@ -367,10 +417,13 @@ void Env::display(){
 }
 
 void Env::runTimeStep(){
-	//_update_friends();
 	vector<Bird>::iterator it;
+	
 	for(it=flock.begin(); it!=flock.end(); it++){
 		it->calcNetForce();
 		it->updateSpeedNPos();
 	}
+	
+	simulation_time += DT;
+	//cout<<"#simulation time : "<<simulation_time<<endl;
 }
