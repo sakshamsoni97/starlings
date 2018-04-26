@@ -3,6 +3,8 @@
 #include <ctime>
 using namespace std;
 
+float KEavg, v2sum, vmax = 0.0, maxf = 0.0;
+
 template <typename T> int sgn(T val) {
     return (T(0) < val) - (val < T(0));
 }
@@ -88,8 +90,8 @@ Bird::Bird(vec3 <float> p){
 }
 
 Bird::Bird(){
-	pos.x = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*10 -5;
-	pos.y = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*10 -5;
+	pos.x = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*100 -50;
+	pos.y = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*100 -50;
 	pos.z = 0.0;
 	dir.x = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*2 -1;
 	dir.y = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*2 -1;
@@ -227,11 +229,10 @@ vec3 <float> Bird::_interactions(){
 		di = (*it)->pos - pos;
 		Di = di.mag();
 
-		if(Di!=0.0){
+		if(Di==0.0){
 			fs = fs + di;
 			continue;
-		}
-		if(Di<=rsep){
+		}else if(Di<=rsep){
 			fs = fs + di/Di;
 		}else{
 			temp = Di-rsep;
@@ -255,7 +256,8 @@ vec3 <float> Bird::_interactions(){
 	fa = fa*WA;
 	if(ni==0)
 		fc = vec3 <float>(0.0, 0.0, 0.0);
-	fc = fc*(WC/((float)ni));
+	else 
+		fc = fc*(WC/((float)ni));
 	fs = fs*(-WS/((float)friends.size()));
 
 	return fa+fs+fc;	
@@ -264,7 +266,7 @@ vec3 <float> Bird::_interactions(){
 
 vec3 <float> Bird::_attraction_to_roost(){
 	vec3 <float> fr(0.0, 0.0, 0.0);
-	fr.z = -WRV*(pos.z - roost.z) + WRVD*vc*dir.z; // TODO: damp this SHM
+	fr.z = -WRV*(pos.z - roost.z) - WRVD*vc*dir.z;
 	vec3 <float> n = pos - roost;
 	n.z = 0;
 	float N = n.mag();
@@ -297,14 +299,12 @@ void Bird::updateRmet(){
 
 
 void Bird::_update_friends(){
-	//clock_t begin, end;
 	vector<Bird>::iterator i1;
 	updateRmet();
 	
 	if(!friends.empty())
 		friends.clear();
 
-	//begin = clock();
 	for(i1 = flock.begin(); i1!=flock.end(); i1++){
 		vector<Bird> frs;
 		if(serial==i1->serial)
@@ -315,10 +315,6 @@ void Bird::_update_friends(){
 		if(dist<rmet)
 			friends.push_back(brd);
 	}
-	//Scout<<friends.size()<<endl;
-	/*end = clock();
-	double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-	cout<<">>step computation time : "<<elapsed_secs<<endl;*/
 }
 
 
@@ -327,7 +323,7 @@ void Bird::calcNetForce(){
 	/*vec3 <float> Frst = _attraction_to_roost();
 	vec3 <float> Fno = _generate_noise();
 	vec3 <float> Fin = _interactions();
-	vec3 <float> Fsocial = Fin  + Fno;*/
+	vec3 <float> Fsocial = Fin + Fno + Frst;*/
 	vec3 <float> Ft = dir*100*mass*(v0 - vc);
 	vec3 <float> Fsocial = _separation() + _cohesion() + _attraction_to_roost() + _generate_noise() + _allignment();
 	float vsq_ratio = (vc*vc)/(v0*v0);
@@ -336,7 +332,10 @@ void Bird::calcNetForce(){
 	vec3 <float> Fflight((CDCL)*temp, -temp, 0.0);
 
 	net_force = Fsocial+Fflight+Ft;
-	if(!isfinite(net_force.mag())){
+	float fm = net_force.mag();
+	if(fm>maxf)
+		maxf = fm; 
+	if(!isfinite(fm)){
 		cout<<simulation_time<<" : net force value exploded "<<endl;
 	}
 }
@@ -348,6 +347,9 @@ void Bird::updateSpeedNPos(){
 	pos = pos + velocity*DT;
 
 	vc = velocity.mag();
+	v2sum += (vc*vc)/count;
+	if(vc>vmax)
+		vmax = vc; 
 	if(!isfinite(pos.mag()))
 		cout<<simulation_time<<" : "<<net_force.mag()<<endl;
 	if(vc!=0.0)
@@ -355,7 +357,9 @@ void Bird::updateSpeedNPos(){
 }
 
 vector<Bird> flock;
-float simulation_time;
+int simulation_time;
+
+float Env::mass;
 
 void Env::_create_flock(int Num){
 	if(!flock.empty())
@@ -370,6 +374,7 @@ Env::Env(vec3 <float> rst, int Num ,float rm, float rsp, float m, float v){
 	Bird::Init(rm,rsp,m,v,rst);
 	_create_flock(Num);
 	simulation_time = 0;
+	mass = m;
 }
 
 void DrawCircle(float cx, float cy, float cz, float r, int num_segments)
@@ -401,7 +406,7 @@ void Env::display(){
 	for(it = flock.begin(); it!=flock.end(); it++){
 		glTranslatef((GLfloat)it->pos.x, (GLfloat)it->pos.y, (GLfloat)it->pos.z);
 		glBegin(GL_TRIANGLES);
-		glColor3f(1.0f, 0.0f, 0.0f);     
+		glColor3f(0.69f, 0.133f, 0.133f);     
 		vec3 <float> p1 = it->dir;
 		vec3 <float> p2(-it->dir.y, it->dir.x, it->pos.z);
 		vec3 <float> p3(it->dir.y, -it->dir.x, it->pos.z);
@@ -418,12 +423,21 @@ void Env::display(){
 
 void Env::runTimeStep(){
 	vector<Bird>::iterator it;
+
+	KEavg = 0.0;
+	v2sum = 0.0;
 	
 	for(it=flock.begin(); it!=flock.end(); it++){
 		it->calcNetForce();
 		it->updateSpeedNPos();
 	}
 	
-	simulation_time += DT;
-	//cout<<"#simulation time : "<<simulation_time<<endl;
+	simulation_time += DTmsec;
+	if(simulation_time%1000 == 0){
+		cout<<"#simulation time : "<<(float)simulation_time/1000<<"sec"<<endl;
+		KEavg = mass*v2sum/2.0;
+		cout<<"\t \t average Kinetic Energy = "<<KEavg<<endl;
+		cout<<"\t \t maximum force experienced = "<<maxf<<endl;
+		cout<<"\t \t maximum speed = "<<vmax<<endl;
+	}
 }

@@ -1,6 +1,6 @@
 #include "Birds.h"
 #include <GL/freeglut.h>
-#include <vector>
+#include <vector> 
 #include <string>
 #include <iostream>
 
@@ -8,7 +8,7 @@ int refreshMills = DTmsec;        // refresh interval in milliseconds
  
 /* Initialize OpenGL Graphics */
 void initGL() {
-   glClearColor(1.0f, 1.0f, 1.0f, 0.0f); 
+   glClearColor(0.53f, 0.8f, 0.98f, 0.0f); 
    glClearDepth(1.0f);                   // Set background depth to farthest
    glEnable(GL_DEPTH_TEST);   // Enable depth testing for z-culling
    glDepthFunc(GL_LEQUAL);    // Set the type of depth-test
@@ -37,14 +37,6 @@ void reshape(GLsizei width, GLsizei height) {  // GLsizei for non-negative integ
    glLoadIdentity();             // Reset
    // Enable perspective projection with fovy, aspect, zNear and zFar
    gluPerspective(150.0f, aspect, 0.1f, 300.0f);
-   
-   /*if (width >= height) {
-     // aspect >= 1, set the height from -1 to 1, with larger width
-      glOrtho(-30.0 * aspect, 30.0 * aspect, -30.0, 30.0, 0.1, 100);
-   } else {
-      // aspect < 1, set the width to -1 to 1, with larger height
-     glOrtho(-30.0, 30.0, -30.0 / aspect, 30.0 / aspect, 0.1, 100);
-   }*/
 }
  
 

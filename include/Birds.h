@@ -10,12 +10,12 @@
 #define DTmsec 10
 #define S 0.005
 #define WS 7.0
-#define WC 10.0
-#define WA 5.0 	
-#define WRV 4.0
-#define WRVD 10.0
-#define WRH 0.2
-#define SIGMA_SQ 1.0
+#define WC 4.0
+#define WA 2.0 	
+#define WRV 1.0
+#define WRVD 2.5
+#define WRH 0.05
+#define SIGMA_SQ 1.21
 #define CDCL 0.3 
 #define G 9.87
 
@@ -82,18 +82,19 @@ public:
 };
 
 extern vector<Bird> flock;
-extern float simulation_time;
+extern int simulation_time;
 
 class Env{
 	/* class to providing controls over the environment */
 	float range;
 	float Rmax;
+	static float mass;
 protected:
 	//static void _update_friends();
 	void _create_flock(int Num);
 
 public:
-	Env(vec3 <float> rst, int Num = 5, float rm = 45, float rsp = 0.7, float m = 0.8, float v = 5.0);
+	Env(vec3 <float> rst, int Num = 1000, float rm = 45, float rsp = 0.7, float m = 0.8, float v = 5.0);
 
 	static void display();
 
